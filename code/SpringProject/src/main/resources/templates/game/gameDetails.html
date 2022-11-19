@@ -1,0 +1,122 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html xmlns:border-collapse="http://java.sun.com/xml/ns/persistence/orm">
+<head>
+  <title>Score Dei</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+  <script type="text/javascript" language="javascript" src="https://code.jquery.com/jquery-3.3.1.js"></script>
+  <script type="text/javascript" language="javascript" src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+  <script language="javascript" type="text/javascript">
+    $(document).ready( function () {
+      $('#dataTable').DataTable()
+    } );
+  </script>
+  <style type="text/css">
+    .table-borderless > tbody > tr > td,
+    .table-borderless > tbody > tr > th,
+    .table-borderless > tfoot > tr > td,
+    .table-borderless > tfoot > tr > th,
+    .table-borderless > thead > tr > td,
+    .table-borderless > thead > tr > th {
+      border: none;
+    }
+  </style>
+
+</head>
+<body>
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/">Score Dei</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li><a href="/">Home</a></li>
+      <li class="active"><a href="/listGames">Games</a></li>
+      <li><a href="/listTeams">Teams</a></li>
+      <li><a href="/listPlayers">Players</a></li>
+      <li><a href="/stats">Stats</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right" sec:authorize="!isAuthenticated()">
+      <<li><a th:href="@{/createData}"><span class="glyphicon glyphicon-floppy-disk"></span> Create Data</a></li>
+      <li><a th:href="@{/login}"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
+    </ul>
+
+    <ul class="nav navbar-nav navbar-right" sec:authorize="isAuthenticated()">
+      <li><a th:text="${#authentication.name}"><span class="glyphicon glyphicon-user" th:text="${#authentication.name}"></span> Logout</a></li>
+      <li sec:authorize="hasAuthority('ADMIN')"><a th:href="@{/register}"><span class="glyphicon glyphicon-user"></span> Sign up new User</a></li>
+      <li><a th:href="@{/logout}"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="container text-center">
+  <p class="text-center h1 fw-bold mb-5 mx-1 mx-md-4 mt-4">Game Details</p>
+  <table class="table table-borderless " width="100%">
+    <tbody>
+    <tr>
+      <td class="text-right"><img th:src="${(game.getTeamA().getImagePath() != null && !#strings.isEmpty(game.getTeamA().getImagePath())) ? game.getTeamA().getImagePath() : 'https://cdn-icons-png.flaticon.com/512/2718/2718324.png'}" alt="Team Logo" width="100" height="100"></td>
+      <td class="text-center h2 fw-bold mb-5 mx-1 mx-md-4 mt-4" th:text="${game.getGameName()}"> </td>
+      <td class="text-left"><img th:src="${(game.getTeamB().getImagePath() != null && !#strings.isEmpty(game.getTeamB().getImagePath())) ? game.getTeamB().getImagePath() : 'https://cdn-icons-png.flaticon.com/512/2718/2718324.png'}" alt="Team Logo" width="100" height="100"></td>
+    </tr>
+    </tbody>
+  </table>
+
+  <p class="text-center h3 fw-bold mb-5 mx-1 mx-md-4 mt-4" th:text="${score}">Team A Score</p>
+
+  <div class="mb-5 mx-1 mx-md-4 mt-4">
+    Localization:
+    <label class="mb-5 mx-1 mx-md-4 mt-4" th:text="${game.getLocalization()}">Localization</label>
+  </div>
+
+  <div>
+    Game Time:
+    <label th:text="${game.getGameTime()}">
+  </div>
+
+  <div>
+    Game Day:
+    <label th:text="${game.getGameDay()}">
+  </div>
+
+  <div class="text-center">
+    <p class="text-center h2 fw-bold mb-5 mx-1 mx-md-4 mt-4">Event List</p>
+    <table class="table table-bordered table-responsive" id="dataTable" data-page-length='50' data-order='[[1, "desc"]]'>
+      <thead>
+      <tr>
+        <th>Event Type</th>
+        <th>Elapsed from beginning</th>
+        <th>Description</th>
+        <th>Team</th>
+        <th>Player</th>
+        <th sec:authorize="hasAuthority('ADMIN')">Edit Event</th>
+      </tr>
+      </thead>
+      <tbody>
+        <tr th:each="event : ${gameEvents}">
+          <td><img th:src="${(event.eventIcons.get(event.getEventType()) != null && !#strings.isEmpty(event.eventIcons.get(event.getEventType())) ? event.eventIcons.get(event.getEventType()) : 'https://cdn-icons-png.flaticon.com/512/2718/2718324.png')}" alt="Team Logo" width="50" height="50"></td>
+          <td th:text="${event.getEventTime()}">Time</td>
+          <td th:text="${event.getEventDescription()}">Description</td>
+          <td th:text="${event.getPlayer()?.getPlayerTeam()?.getName()}">Team</td>
+          <td th:text="${event.getPlayer()?.getName()}">Player</td>
+          <td sec:authorize="hasAuthority('ADMIN')"><a th:href="@{editGameEvent(id=${event.id})}">Edit Game Event</a></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <br>
+  <div class="row" sec:authorize="isAuthenticated()">
+    <div class="col text-center">
+      <a th:href="@{createEvent(id=${game.id})}"  class="btn btn-primary btn-lg">
+        Create Event
+      </a>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
